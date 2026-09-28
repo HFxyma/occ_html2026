@@ -1,0 +1,786 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>HTMLチャレンジ｜Webデザイン</title>
+<style>
+  :root{
+    --deep:#05505C;
+    --teal:#028090;
+    --mint:#02C39A;
+    --pale:#EEF5F5;
+    --paper:#F7FBFB;
+    --ink:#1B2B2F;
+    --gray:#6B7A7E;
+    --line:#C9D8D8;
+    --warn:#C1583B;
+    --gold:#E2A32B;
+    --jp:"Meiryo","Hiragino Kaku Gothic ProN","Yu Gothic",sans-serif;
+    --mono:"Consolas","Courier New",monospace;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0}
+  body{font-family:var(--jp);color:var(--ink);background:#fff;line-height:1.7;font-size:15px}
+  .shell{max-width:1120px;margin:0 auto;padding:0 20px 64px}
+
+  header{background:var(--deep);color:#fff;padding:20px 0 16px}
+  header .inner{max-width:1120px;margin:0 auto;padding:0 20px}
+  .toprow{display:flex;justify-content:space-between;align-items:flex-end;gap:16px;flex-wrap:wrap}
+  header .course{color:var(--mint);font-size:12.5px;font-weight:700;margin:0 0 3px}
+  header h1{font-size:24px;margin:0;letter-spacing:.02em}
+  .score{color:#BCD8DA;font-size:13px;margin:0;text-align:right}
+  .score b{color:var(--gold);font-size:16px}
+
+  .dots{display:flex;gap:7px;margin:14px 0 0;flex-wrap:wrap}
+  .dot{
+    width:30px;height:30px;border-radius:50%;border:1.5px solid #3A7B85;background:transparent;
+    color:#BCD8DA;font-family:inherit;font-size:12.5px;font-weight:700;cursor:pointer;
+    display:grid;place-items:center;padding:0;
+  }
+  .dot:hover{border-color:var(--mint)}
+  .dot.now{background:#fff;border-color:#fff;color:var(--deep)}
+  .dot.done{background:var(--mint);border-color:var(--mint);color:var(--deep)}
+  .dot.done.now{box-shadow:0 0 0 3px rgba(255,255,255,.6)}
+
+  .ref{margin:22px 0 0;border:1px solid var(--line);border-radius:10px;background:#fff;
+    padding:14px 18px}
+  .ref .head{display:flex;justify-content:space-between;align-items:center;gap:12px}
+  .ref h2{margin:0;font-size:15px;color:var(--deep)}
+  .ref .lead{margin:2px 0 0;font-size:12.5px;color:var(--gray)}
+  .toggle{font-family:inherit;font-size:12.5px;cursor:pointer;padding:6px 14px;border-radius:999px;
+    border:1px solid var(--line);background:#fff;color:var(--teal);font-weight:700;flex:0 0 auto}
+  .toggle:hover{background:var(--pale)}
+  .taglist{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:12px}
+  .taglist.off{display:none}
+  .tag{border:1px solid var(--line);border-radius:8px;background:var(--paper);padding:9px 12px}
+  .tag .n{font-family:var(--mono);font-size:13px;color:var(--teal);font-weight:700}
+  .tag .m{font-size:12.5px;color:var(--ink);margin:1px 0 4px}
+  .tag .e{font-family:var(--mono);font-size:11.5px;color:var(--gray);word-break:break-all}
+  .ref .foot{margin:12px 0 0;font-size:12.5px;color:var(--warn)}
+  .ref .foot code{font-family:var(--mono)}
+
+  .prompt{margin:16px 0 16px;border:1px solid var(--line);border-radius:10px;
+    background:var(--paper);padding:14px 18px}
+  .prompt h2{margin:0 0 4px;font-size:17px}
+  .prompt p{margin:0;font-size:14px}
+
+  .board{display:grid;grid-template-columns:1fr 1fr;gap:18px;align-items:start}
+  .col > h3{font-size:13px;margin:0 0 8px;color:var(--teal);font-weight:700;
+    display:flex;justify-content:space-between;align-items:center}
+  .col > h3 .side{font-weight:400;color:var(--gray);font-size:12px}
+
+  .screen{border:1px solid var(--line);border-radius:10px;background:#fff;overflow:hidden;
+    height:330px;display:flex;flex-direction:column}
+  .screen .bar{background:var(--pale);border-bottom:1px solid var(--line);
+    font-size:10.5px;color:var(--gray);padding:4px 10px;flex:0 0 auto}
+  .screen .body{padding:16px;overflow:auto;font-size:15px;line-height:1.7}
+  .screen iframe{border:0;width:100%;flex:1 1 auto;background:#fff}
+
+  /* 見本のみかけ（プレビューのCSSと同じ値にそろえてあります） */
+  .mock-h1{font-size:24px;font-weight:700;margin:0 0 12px}
+  .mock-h2{font-size:19px;font-weight:700;margin:16px 0 8px}
+  .mock-p{margin:15px 0}
+  .mock-list{margin:15px 0;padding-left:40px}
+  .mock-li{margin:0}
+  .mock-ul > .mock-li{display:list-item;list-style:disc outside}
+  .mock-ol > .mock-li{display:list-item;list-style:decimal outside}
+  .mock-hr{margin:12px 0;border:0;border-top:1px solid var(--line)}
+  .mock-a{color:#1155CC;text-decoration:underline}
+  .mock-b{font-weight:700}
+  .screen .body img{vertical-align:middle;max-width:100%}
+
+  .codecard{border:1px solid var(--line);border-radius:10px;background:var(--paper);
+    padding:12px 14px;font-family:var(--mono);font-size:14px;line-height:1.8;min-height:330px}
+  .fixed{margin:0;white-space:pre-wrap;color:#8C9A9E;font-family:var(--mono);font-size:14px;
+    line-height:1.8;user-select:none}
+  .slot{margin:7px 0 7px 18px}
+  textarea{font-family:var(--mono);font-size:14px;line-height:1.8;width:calc(100% - 18px);
+    min-height:104px;padding:10px 12px;border:2px solid var(--mint);border-radius:8px;
+    background:#fff;color:var(--ink);resize:vertical;tab-size:2;display:block}
+  textarea:focus{outline:3px solid var(--mint);outline-offset:1px}
+
+  .acts{display:flex;gap:10px;margin-top:12px;flex-wrap:wrap;align-items:center}
+  .btn{font-family:inherit;font-size:14px;cursor:pointer;padding:11px 26px;border-radius:8px;
+    border:1px solid var(--line);background:#fff;color:var(--teal);font-weight:700}
+  .btn:hover{background:var(--pale)}
+  .btn:focus-visible{outline:3px solid var(--mint);outline-offset:2px}
+  .btn.go{background:var(--teal);border-color:var(--teal);color:#fff;font-size:16px;padding:12px 40px}
+  .btn.go:hover{background:#016c79}
+  .btn.next{background:var(--mint);border-color:var(--mint);color:var(--deep);font-size:15px}
+  .btn.next:hover{background:#02b18d}
+  .btn.ghost{color:var(--gray);font-weight:400;padding:11px 16px}
+  .btn:disabled{opacity:.45;cursor:default}
+  .tries{font-size:12.5px;color:var(--gray);margin-left:auto}
+
+  .warnline{min-height:20px;font-size:13px;color:var(--warn);font-weight:700;margin:8px 0 0}
+
+  .hints{margin-top:12px}
+  .hint{display:none;border:1px solid var(--mint);background:var(--pale);border-radius:8px;
+    padding:10px 14px;font-size:13.5px;margin-bottom:8px}
+  .hint.on{display:block}
+  .hint code{font-family:var(--mono);color:var(--deep)}
+
+  .result{display:none;margin-top:26px;border-top:1px solid var(--line);padding-top:22px}
+  .result.on{display:block}
+  .verdict{display:flex;align-items:center;gap:16px;margin-bottom:16px;flex-wrap:wrap}
+  .stamp{width:72px;height:72px;border-radius:50%;display:grid;place-items:center;
+    font-size:29px;font-weight:700;flex:0 0 auto;border:3px solid;
+    animation:pop .35s cubic-bezier(.2,1.4,.5,1)}
+  @keyframes pop{from{transform:scale(.4);opacity:0}to{transform:scale(1);opacity:1}}
+  .stamp.ok{border-color:var(--mint);color:var(--mint)}
+  .stamp.ng{border-color:var(--warn);color:var(--warn)}
+  .verdict h3{margin:0 0 2px;font-size:20px}
+  .verdict p{margin:0;font-size:13.5px;color:var(--gray)}
+  .stars{font-size:21px;color:var(--gold);letter-spacing:4px;margin-top:2px}
+  .nextwrap{margin-left:auto}
+
+  .check{list-style:none;margin:0 0 18px;padding:0}
+  .check li{font-size:14px;padding:7px 0 7px 30px;position:relative;border-bottom:1px solid var(--pale)}
+  .check li::before{position:absolute;left:2px;top:7px;width:19px;height:19px;border-radius:50%;
+    font-size:12px;line-height:19px;text-align:center;font-weight:700;color:#fff}
+  .check li.ok::before{content:"○";background:var(--mint)}
+  .check li.ng::before{content:"×";background:var(--warn)}
+  .check li .why{display:block;font-size:12.5px;color:var(--gray)}
+
+  .compare{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+
+  .finish{display:none;margin:22px 0 0;border:2px solid var(--mint);border-radius:12px;
+    background:var(--pale);padding:20px 22px;text-align:center}
+  .finish.on{display:block}
+  .finish h2{margin:0 0 6px;font-size:22px;color:var(--deep)}
+  .finish p{margin:0 0 4px;font-size:14px}
+  .finish .big{font-size:26px;color:var(--gold);letter-spacing:3px}
+
+  footer{margin-top:34px;font-size:12.5px;color:var(--gray)}
+
+  @media (max-width:1000px){ .taglist{grid-template-columns:repeat(2,1fr)} }
+  @media (max-width:880px){
+    .board,.compare{grid-template-columns:1fr}
+    .taglist{grid-template-columns:1fr}
+    .screen{height:260px}
+    .codecard{min-height:0}
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="inner">
+    <div class="toprow">
+      <div>
+        <p class="course">Webデザイン　HTMLチャレンジ</p>
+        <h1>見本とおなじ画面を作ろう</h1>
+      </div>
+      <p class="score">だい <b id="qNow">1</b> もん ／ ぜん 10 もん<br>
+        ★ <b id="starTotal">0</b> ／ 30</p>
+    </div>
+    <div class="dots" id="dots"></div>
+  </div>
+</header>
+
+<div class="shell">
+
+  <section class="ref">
+    <div class="head">
+      <div>
+        <h2>タグ一覧</h2>
+        <p class="lead">この10問で使うタグです。迷ったらここを見てください。</p>
+      </div>
+      <button class="toggle" id="refToggle">とじる</button>
+    </div>
+    <div class="taglist" id="taglist">
+      <div class="tag"><div class="n">&lt;h1&gt;</div><div class="m">大きい見出し</div>
+        <div class="e">&lt;h1&gt;もちもの&lt;/h1&gt;</div></div>
+      <div class="tag"><div class="n">&lt;h2&gt;</div><div class="m">小さい見出し</div>
+        <div class="e">&lt;h2&gt;持ち物&lt;/h2&gt;</div></div>
+      <div class="tag"><div class="n">&lt;p&gt;</div><div class="m">段落（文のまとまり）</div>
+        <div class="e">&lt;p&gt;今日は晴れです。&lt;/p&gt;</div></div>
+      <div class="tag"><div class="n">&lt;br&gt;</div><div class="m">改行（閉じない）</div>
+        <div class="e">あさがおが&lt;br&gt;さきました。</div></div>
+      <div class="tag"><div class="n">&lt;strong&gt;</div><div class="m">太字（強調）</div>
+        <div class="e">&lt;strong&gt;大事&lt;/strong&gt;</div></div>
+      <div class="tag"><div class="n">&lt;a&gt;</div><div class="m">リンク</div>
+        <div class="e">&lt;a href="https://example.com"&gt;園のサイト&lt;/a&gt;</div></div>
+      <div class="tag"><div class="n">&lt;ul&gt; &lt;li&gt;</div><div class="m">点つきの箇条書き</div>
+        <div class="e">&lt;ul&gt;&lt;li&gt;水筒&lt;/li&gt;&lt;/ul&gt;</div></div>
+      <div class="tag"><div class="n">&lt;ol&gt; &lt;li&gt;</div><div class="m">番号つきのリスト</div>
+        <div class="e">&lt;ol&gt;&lt;li&gt;集合&lt;/li&gt;&lt;/ol&gt;</div></div>
+      <div class="tag"><div class="n">&lt;img&gt;</div><div class="m">画像（閉じない）</div>
+        <div class="e">&lt;img src="images/ehon1.jpg" alt="絵本"&gt;</div></div>
+    </div>
+    <p class="foot">閉じタグを書かないのは <code>&lt;br&gt;</code> と <code>&lt;img&gt;</code> の2つだけ。ほかは かならず閉じます。</p>
+  </section>
+
+  <div class="prompt">
+    <h2 id="pTitle"></h2>
+    <p id="pDesc"></p>
+  </div>
+
+  <div class="board">
+    <div class="col">
+      <h3>見本<span class="side">この画面を目ざします</span></h3>
+      <div class="screen">
+        <div class="bar">ブラウザの画面</div>
+        <div class="body" id="mock"></div>
+      </div>
+    </div>
+
+    <div class="col">
+      <h3>コード<span class="side">グレーの部分は書いてあります</span></h3>
+      <div class="codecard">
+        <pre class="fixed" id="before"></pre>
+        <div class="slot">
+          <textarea id="code" spellcheck="false" aria-label="コードを書くところ"
+            placeholder="ここに書く"></textarea>
+        </div>
+        <pre class="fixed" id="after"></pre>
+      </div>
+      <p class="warnline" id="warn"></p>
+      <div class="acts">
+        <button class="btn go" id="run">できた！</button>
+        <button class="btn" id="hintBtn">ヒント</button>
+        <button class="btn ghost" id="clear">けす</button>
+        <span class="tries" id="tries"></span>
+      </div>
+      <div class="hints" id="hints"></div>
+    </div>
+  </div>
+
+  <section class="result" id="result">
+    <div class="verdict">
+      <div class="stamp" id="stamp"></div>
+      <div>
+        <h3 id="vTitle"></h3>
+        <p id="vText"></p>
+        <div class="stars" id="stars"></div>
+      </div>
+      <div class="nextwrap"><button class="btn next" id="next">つぎのもんだいへ →</button></div>
+    </div>
+
+    <ul class="check" id="checks"></ul>
+
+    <div class="compare">
+      <div class="col">
+        <h3>見本</h3>
+        <div class="screen">
+          <div class="bar">ブラウザの画面</div>
+          <div class="body" id="mock2"></div>
+        </div>
+      </div>
+      <div class="col">
+        <h3>あなたの画面</h3>
+        <div class="screen">
+          <div class="bar">ブラウザの画面</div>
+          <iframe id="view" title="あなたの画面"
+            sandbox="allow-popups allow-popups-to-escape-sandbox"></iframe>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <div class="finish" id="finish">
+    <h2>ぜんもんクリア！</h2>
+    <p class="big" id="finStars"></p>
+    <p id="finText"></p>
+  </div>
+
+  <footer>まちがえても何度でも出せます。回数は減点になりません。上の丸を押すと、どの問題にも移れます。</footer>
+</div>
+
+<script>
+(function(){
+/* ============ 画像（ファイルがなくても表示できるように埋めこみ） ============ */
+function cover(bg, fg, mark){
+  var svg = '<svg xmlns="http://www.w3.org/2000/svg" width="120" height="90">'
+    + '<rect width="120" height="90" rx="6" fill="' + bg + '"/>'
+    + '<rect x="8" y="8" width="104" height="74" rx="4" fill="none" stroke="' + fg + '" stroke-width="2"/>'
+    + mark + '</svg>';
+  return 'data:image/svg+xml,' + encodeURIComponent(svg);
+}
+var IMG = {
+  'images/ehon1.jpg': cover('#E8A13A', '#FFFFFF',
+    '<circle cx="42" cy="45" r="13" fill="#FFFFFF"/><circle cx="62" cy="45" r="11" fill="#FFF3DC"/><circle cx="79" cy="45" r="9" fill="#FFFFFF"/>'),
+  'images/ehon2.jpg': cover('#3E8E6E', '#FFFFFF',
+    '<ellipse cx="60" cy="50" rx="26" ry="17" fill="#FFE9B8"/><rect x="52" y="30" width="16" height="14" rx="3" fill="#FFFFFF"/>'),
+  'images/ehon3.jpg': cover('#3D6FA8', '#FFFFFF',
+    '<path d="M60 26 L84 62 H36 Z" fill="#FFFFFF"/><rect x="54" y="62" width="12" height="10" fill="#FFE9B8"/>')
+};
+function withImages(html){
+  return html.replace(/src\s*=\s*("([^"]*)"|'([^']*)')/g, function(m, q, d, s){
+    var key = (d !== undefined ? d : s).replace(/^\.\//, '');
+    return IMG[key] ? 'src="' + IMG[key] + '"' : m;
+  });
+}
+
+/* ============ 問題 ============ */
+var Q = [
+  {
+    title:'もちものリストを作ろう',
+    desc:'点（・）のついた箇条書きを3つ作ります。',
+    before:'  <h1>もちもの</h1>\n  <p>あしたの えんそくに もってくるものです。</p>',
+    after:'  <p>わすれものに 気をつけましょう。</p>',
+    mock:[{h1:'もちもの'},{p:['あしたの えんそくに もってくるものです。']},
+          {ul:['水筒','ぼうし','タオル']},{p:['わすれものに 気をつけましょう。']}],
+    hints:['リスト全体を <code>&lt;ul&gt;</code> と <code>&lt;/ul&gt;</code> ではさみます。',
+           '1つ1つの項目は <code>&lt;li&gt;水筒&lt;/li&gt;</code> のようにはさみます。'],
+    checks:[
+      {t:'has', tag:'ul', why:'リスト全体を &lt;ul&gt; と &lt;/ul&gt; ではさみます。&lt;ol&gt; だと番号つきになります。'},
+      {t:'count', tag:'li', n:3},
+      {t:'inside', parent:'ul', child:'li'},
+      {t:'texts', sel:'li', want:['水筒','ぼうし','タオル']}
+    ]
+  },
+  {
+    title:'当日のながれを番号つきで',
+    desc:'順番に意味があるので、番号のつくリストを使います。',
+    before:'  <h1>おさんぽ会</h1>\n  <h2>当日のながれ</h2>',
+    after:'  <p>時間は かわることが あります。</p>',
+    mock:[{h1:'おさんぽ会'},{h2:'当日のながれ'},
+          {ol:['9時30分　集合','10時00分　出発','12時00分　園にもどる']},
+          {p:['時間は かわることが あります。']}],
+    hints:['番号つきのリストは <code>&lt;ol&gt;</code> です。',
+           '中身の1つ1つは、点つきのときと同じ <code>&lt;li&gt;</code> です。'],
+    checks:[
+      {t:'has', tag:'ol', why:'番号つきのリストは &lt;ul&gt; ではなく &lt;ol&gt; です。'},
+      {t:'count', tag:'li', n:3},
+      {t:'inside', parent:'ol', child:'li'},
+      {t:'texts', sel:'li', want:['9時30分　集合','10時00分　出発','12時00分　園にもどる']}
+    ]
+  },
+  {
+    title:'小見出しをつけよう',
+    desc:'ページの題名の下に、小さい見出しを1つ入れます。',
+    before:'  <h1>さくら組だより</h1>\n  <p>10月の予定を おしらせします。</p>',
+    after:'  <p>おさんぽ会は 15日です。</p>',
+    mock:[{h1:'さくら組だより'},{p:['10月の予定を おしらせします。']},
+          {h2:'10月のおしらせ'},{p:['おさんぽ会は 15日です。']}],
+    hints:['大きい見出しが <code>&lt;h1&gt;</code>、その下の見出しが <code>&lt;h2&gt;</code> です。',
+           '書き方は <code>&lt;h2&gt;10月のおしらせ&lt;/h2&gt;</code> です。'],
+    checks:[
+      {t:'count', tag:'h2', n:1, why:'見出しは &lt;h2&gt; を1つだけ書きます。'},
+      {t:'texts', sel:'h2', want:['10月のおしらせ']}
+    ]
+  },
+  {
+    title:'段落を2つ書こう',
+    desc:'文章のまとまりごとに、段落を分けます。',
+    before:'  <h1>えんそくのおしらせ</h1>',
+    after:'  <p>くわしくは おたよりを ごらんください。</p>',
+    mock:[{h1:'えんそくのおしらせ'},
+          {p:['10月15日に えんそくに 行きます。']},
+          {p:['あめの ときは 中止です。']},
+          {p:['くわしくは おたよりを ごらんください。']}],
+    hints:['段落は <code>&lt;p&gt;</code> ではさみます。',
+           '段落が2つなら、<code>&lt;p&gt;…&lt;/p&gt;</code> を2回書きます。'],
+    checks:[
+      {t:'count', tag:'p', n:2, why:'文章のまとまりごとに &lt;p&gt; で囲みます。今回は2つです。'},
+      {t:'texts', sel:'p', want:['10月15日に えんそくに 行きます。','あめの ときは 中止です。']}
+    ]
+  },
+  {
+    title:'1つの段落の中で行をかえよう',
+    desc:'段落は分けずに、行だけを変えます。',
+    before:'  <h1>あさがお</h1>',
+    after:'  <p>まいにち 水を あげましょう。</p>',
+    mock:[{h1:'あさがお'},
+          {p:['あさがおが',{br:1},'さきました。']},
+          {p:['まいにち 水を あげましょう。']}],
+    hints:['段落は1つだけ。その中で改行します。',
+           '改行は <code>&lt;br&gt;</code>。閉じタグは書きません。'],
+    checks:[
+      {t:'count', tag:'p', n:1, why:'段落は1つです。&lt;p&gt; を2回書くと、間が広くあいてしまいます。'},
+      {t:'count', tag:'br', n:1, why:'行を変えるところに &lt;br&gt; を1つ入れます。'},
+      {t:'texts', sel:'p', want:['あさがおがさきました。']}
+    ]
+  },
+  {
+    title:'大事なところを太字に',
+    desc:'文の一部だけを強調します。',
+    before:'  <h1>おさんぽ会について</h1>',
+    after:'  <p>くわしくは おたよりを ごらんください。</p>',
+    mock:[{h1:'おさんぽ会について'},
+          {p:['雨のときは ',{b:'翌日'},' にのばします。']},
+          {p:['くわしくは おたよりを ごらんください。']}],
+    hints:['太字にしたい文字だけを <code>&lt;strong&gt;</code> ではさみます。',
+           '段落全体は <code>&lt;p&gt;</code>、その中の「翌日」だけ <code>&lt;strong&gt;</code> です。'],
+    checks:[
+      {t:'count', tag:'p', n:1},
+      {t:'has', tag:'strong', why:'強調したい文字を &lt;strong&gt; ではさみます。'},
+      {t:'texts', sel:'strong', want:['翌日']},
+      {t:'texts', sel:'p', want:['雨のときは翌日にのばします。']}
+    ]
+  },
+  {
+    title:'リンクを作ろう',
+    desc:'段落のタグは書いてあります。その中に入るリンクだけを書きます。',
+    before:'  <h1>さくら組だより</h1>\n  <p>',
+    after:'  </p>',
+    mock:[{h1:'さくら組だより'},{p:[{a:'園のホームページ'}]}],
+    hints:['リンクは <code>&lt;a&gt;</code>。行き先は href に書きます。',
+           '<code>&lt;a href="https://example.com"&gt;園のホームページ&lt;/a&gt;</code>'],
+    checks:[
+      {t:'has', tag:'a', why:'リンクのタグは &lt;a&gt; です。'},
+      {t:'attr', tag:'a', name:'href', want:'https://example.com',
+        why:'href="https://example.com" と書きます。'},
+      {t:'texts', sel:'a', want:['園のホームページ']}
+    ]
+  },
+  {
+    title:'画像を表示しよう',
+    desc:'画像は images フォルダの中の ehon1.jpg です。',
+    before:'  <h1>きょうの絵本</h1>',
+    after:'  <p>みんなで よみました。</p>',
+    mock:[{h1:'きょうの絵本'},{img:'images/ehon1.jpg'},{p:['みんなで よみました。']}],
+    hints:['画像は <code>&lt;img&gt;</code>。閉じタグはありません。',
+           '<code>&lt;img src="images/ehon1.jpg" alt="…"&gt;</code>　alt には何の絵かを書きます。'],
+    checks:[
+      {t:'count', tag:'img', n:1, why:'画像のタグは &lt;img&gt; です。&lt;/img&gt; は書きません。'},
+      {t:'attr', tag:'img', name:'src', want:'images/ehon1.jpg',
+        why:'images/ を忘れずに。大文字・小文字もそのまま書きます。'},
+      {t:'filled', tag:'img', name:'alt', why:'alt に、何が写っているかを書きます。'}
+    ]
+  },
+  {
+    title:'箇条書きの中に画像を入れよう',
+    desc:'タグの中にタグを入れます（入れ子）。画像は2枚です。',
+    before:'  <h1>おすすめ絵本</h1>',
+    after:'  <p>としょしつで かりられます。</p>',
+    mock:[{h1:'おすすめ絵本'},
+          {ul:[{img:'images/ehon1.jpg', text:' はらぺこあおむし'},
+               {img:'images/ehon2.jpg', text:' ぐりとぐら'}]},
+          {p:['としょしつで かりられます。']}],
+    hints:['まず <code>&lt;ul&gt;</code> と <code>&lt;li&gt;</code> でリストを作ります。',
+           '<code>&lt;li&gt;&lt;img src="images/ehon1.jpg" alt="…"&gt; はらぺこあおむし&lt;/li&gt;</code>'],
+    checks:[
+      {t:'has', tag:'ul'},
+      {t:'count', tag:'li', n:2},
+      {t:'count', tag:'img', n:2},
+      {t:'inside', parent:'li', child:'img', why:'画像は &lt;li&gt; の中に入れます。'},
+      {t:'attrs', tag:'img', name:'src', want:['images/ehon1.jpg','images/ehon2.jpg']},
+      {t:'filled', tag:'img', name:'alt'},
+      {t:'texts', sel:'li', want:['はらぺこあおむし','ぐりとぐら']}
+    ]
+  },
+  {
+    title:'さいご：おたよりの一部を作ろう',
+    desc:'小見出し・段落・箇条書きを組み合わせます。',
+    before:'  <h1>さくら組だより</h1>',
+    after:'  <p>よろしく おねがいします。</p>',
+    mock:[{h1:'さくら組だより'},
+          {h2:'もちもの'},
+          {p:['つぎのものを もたせてください。']},
+          {ul:['水筒','ぼうし','タオル']},
+          {p:['よろしく おねがいします。']}],
+    hints:['上から順に、見出し → 段落 → 箇条書き の3つを書きます。',
+           '<code>&lt;h2&gt;</code>、<code>&lt;p&gt;</code>、<code>&lt;ul&gt;&lt;li&gt;</code> をならべます。'],
+    checks:[
+      {t:'count', tag:'h2', n:1},
+      {t:'texts', sel:'h2', want:['もちもの']},
+      {t:'count', tag:'p', n:1},
+      {t:'texts', sel:'p', want:['つぎのものを もたせてください。']},
+      {t:'has', tag:'ul'},
+      {t:'count', tag:'li', n:3},
+      {t:'texts', sel:'li', want:['水筒','ぼうし','タオル']}
+    ]
+  }
+];
+
+/* ============ 見本の組み立て ============ */
+function el(cls, tag){ var d = document.createElement(tag || 'div'); if (cls) d.className = cls; return d; }
+function parts(node, arr){
+  arr.forEach(function(p){
+    if (typeof p === 'string') { node.appendChild(document.createTextNode(p)); return; }
+    if (p.br) { node.appendChild(document.createElement('br')); return; }
+    if (p.b)  { var b = el('mock-b','span'); b.textContent = p.b; node.appendChild(b); return; }
+    if (p.a)  { var a = el('mock-a','span'); a.textContent = p.a; node.appendChild(a); return; }
+  });
+}
+function img(key){
+  var i = document.createElement('img');
+  i.src = IMG[key]; i.alt = ''; i.width = 120; i.height = 90;
+  return i;
+}
+function buildMock(box, spec){
+  box.innerHTML = '';
+  spec.forEach(function(b){
+    if (b.h1 !== undefined) { var h = el('mock-h1'); h.textContent = b.h1; box.appendChild(h); return; }
+    if (b.h2 !== undefined) { var h2 = el('mock-h2'); h2.textContent = b.h2; box.appendChild(h2); return; }
+    if (b.p)  { var p = el('mock-p'); parts(p, b.p); box.appendChild(p); return; }
+    if (b.hr) { box.appendChild(el('mock-hr','hr')); return; }
+    if (b.img){ var w = el('mock-p'); w.style.margin = '0'; w.appendChild(img(b.img)); box.appendChild(w); return; }
+    if (b.ul || b.ol) {
+      var isOl = !!b.ol;
+      var list = el('mock-list ' + (isOl ? 'mock-ol' : 'mock-ul'));
+      (b.ul || b.ol).forEach(function(it){
+        var li = el('mock-li');
+        if (typeof it === 'string') li.textContent = it;
+        else { li.appendChild(img(it.img)); li.appendChild(document.createTextNode(it.text)); }
+        list.appendChild(li);
+      });
+      box.appendChild(list);
+    }
+  });
+}
+
+/* ============ 判定 ============ */
+var parser = new DOMParser();
+function norm(t){ return (t || '').replace(/[\s\u3000]+/g, ''); }
+function T(tag){ return '<' + tag + '>'; }
+
+function runChecks(spec, body){
+  return spec.map(function(c){
+    var els, i, ok, found;
+    if (c.t === 'has') {
+      ok = !!body.querySelector(c.tag);
+      return { ok:ok, msg: ok ? T(c.tag) + ' が使われている' : T(c.tag) + ' が見つかりません', why:c.why };
+    }
+    if (c.t === 'count') {
+      found = body.querySelectorAll(c.tag).length;
+      ok = (found === c.n);
+      return { ok:ok,
+        msg: ok ? T(c.tag) + ' が' + c.n + 'つある' : T(c.tag) + ' の数が ' + found + ' 個です（' + c.n + 'つ必要）',
+        why:c.why };
+    }
+    if (c.t === 'inside') {
+      els = body.querySelectorAll(c.child);
+      ok = els.length > 0;
+      for (i = 0; i < els.length; i++) { if (!els[i].closest(c.parent)) ok = false; }
+      return { ok:ok,
+        msg: ok ? T(c.child) + ' が ' + T(c.parent) + ' の中に入っている'
+                : T(c.child) + ' が ' + T(c.parent) + ' の中にありません',
+        why:c.why };
+    }
+    if (c.t === 'texts') {
+      els = body.querySelectorAll(c.sel);
+      ok = (els.length === c.want.length);
+      if (ok) for (i = 0; i < els.length; i++) {
+        if (norm(els[i].textContent) !== norm(c.want[i])) { ok = false; break; }
+      }
+      return { ok:ok, msg: ok ? '文字が見本と同じ（順番も同じ）' : '文字が見本とちがいます',
+        why: c.why || '見本のとおりに、同じ文字・同じ順番で書きます。' };
+    }
+    if (c.t === 'attr' || c.t === 'attrs') {
+      els = body.querySelectorAll(c.tag);
+      var want = (c.t === 'attrs') ? c.want : [c.want];
+      ok = (els.length === want.length);
+      if (ok) for (i = 0; i < els.length; i++) {
+        if ((els[i].getAttribute(c.name) || '').trim() !== want[i]) { ok = false; break; }
+      }
+      return { ok:ok, msg: ok ? c.name + ' が正しく書けている' : c.name + ' がちがいます', why:c.why };
+    }
+    if (c.t === 'filled') {
+      els = body.querySelectorAll(c.tag);
+      ok = els.length > 0;
+      for (i = 0; i < els.length; i++) {
+        if (!(els[i].getAttribute(c.name) || '').trim()) ok = false;
+      }
+      return { ok:ok, msg: ok ? c.name + ' が書いてある' : c.name + ' が書かれていません', why:c.why };
+    }
+    return { ok:true, msg:'' };
+  });
+}
+
+/* ============ 画面 ============ */
+var HEAD = '<!DOCTYPE html><html lang="ja"><head><meta charset="UTF-8"><base target="_blank">'
+  + '<style>body{font-family:"Meiryo","Hiragino Kaku Gothic ProN",sans-serif;line-height:1.7;'
+  + 'color:#1B2B2F;padding:16px;margin:0;font-size:15px}'
+  + 'h1{font-size:24px;margin:0 0 12px}h2{font-size:19px;margin:16px 0 8px}'
+  + 'p{margin:15px 0}ul,ol{margin:15px 0;padding-left:40px}'
+  + 'hr{margin:12px 0;border:0;border-top:1px solid #C9D8D8}a{color:#1155CC}'
+  + 'img{max-width:100%;vertical-align:middle}</style></head><body>';
+
+var code   = document.getElementById('code');
+var view   = document.getElementById('view');
+var result = document.getElementById('result');
+var checksEl = document.getElementById('checks');
+var warn   = document.getElementById('warn');
+var tries  = document.getElementById('tries');
+var hintsBox = document.getElementById('hints');
+var hintBtn  = document.getElementById('hintBtn');
+var nextBtn  = document.getElementById('next');
+var dotsBox  = document.getElementById('dots');
+
+var cur = 0;
+var answers = Q.map(function(){ return ''; });
+var cleared = Q.map(function(){ return false; });
+var stars   = Q.map(function(){ return 0; });
+var counts  = Q.map(function(){ return 0; });
+var hintsUsed = Q.map(function(){ return 0; });
+
+function esc(s){ return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+function grow(){
+  code.style.height = 'auto';
+  code.style.height = Math.max(104, code.scrollHeight + 4) + 'px';
+}
+
+function drawDots(){
+  dotsBox.innerHTML = '';
+  Q.forEach(function(q, i){
+    var b = document.createElement('button');
+    b.className = 'dot' + (cleared[i] ? ' done' : '') + (i === cur ? ' now' : '');
+    b.textContent = (i + 1);
+    b.title = (i + 1) + 'もん目';
+    b.addEventListener('click', function(){ save(); load(i); });
+    dotsBox.appendChild(b);
+  });
+  var tot = stars.reduce(function(a, b){ return a + b; }, 0);
+  document.getElementById('starTotal').textContent = tot;
+  document.getElementById('qNow').textContent = cur + 1;
+  var allDone = cleared.every(Boolean);
+  var fin = document.getElementById('finish');
+  fin.classList.toggle('on', allDone);
+  if (allDone) {
+    document.getElementById('finStars').textContent = '★ ' + tot + ' / 30';
+    document.getElementById('finText').textContent =
+      '10問ぜんぶ、見本と同じ画面になりました。ここまでできれば、簡単なページは自分で作れます。';
+  }
+}
+
+function save(){ answers[cur] = code.value; }
+
+function load(i){
+  cur = i;
+  var q = Q[i];
+  document.getElementById('pTitle').textContent = (i + 1) + '　' + q.title;
+  document.getElementById('pDesc').textContent  = q.desc;
+  document.getElementById('before').textContent = '<body>\n' + q.before;
+  document.getElementById('after').textContent  = q.after + '\n</body>';
+  buildMock(document.getElementById('mock'), q.mock);
+  buildMock(document.getElementById('mock2'), q.mock);
+
+  hintsBox.innerHTML = '';
+  q.hints.forEach(function(h, k){
+    var d = document.createElement('div');
+    d.className = 'hint' + (k < hintsUsed[i] ? ' on' : '');
+    d.innerHTML = 'ヒント' + (k + 1) + '　' + h;
+    hintsBox.appendChild(d);
+  });
+  hintBtn.disabled = (hintsUsed[i] >= q.hints.length);
+  hintBtn.textContent = hintBtn.disabled ? 'ヒントは以上' : 'ヒント';
+
+  code.value = answers[i];
+  warn.textContent = '';
+  result.classList.remove('on');
+  tries.textContent = counts[i] ? (cleared[i] ? 'クリア済み　' : '') + '出した回数：' + counts[i] + '回' : '';
+  nextBtn.style.display = (i === Q.length - 1) ? 'none' : '';
+  grow();
+  drawDots();
+  window.scrollTo({ top:0, behavior:'smooth' });
+}
+
+code.addEventListener('input', function(){
+  grow();
+  var bad = [];
+  if (/[＜＞]/.test(code.value)) bad.push('＜ ＞');
+  if (/[”“＂]/.test(code.value)) bad.push('” “');
+  if (/[／]/.test(code.value))   bad.push('／');
+  warn.textContent = bad.length
+    ? '全角の記号が入っています（' + bad.join('、') + '）。半角に打ち直してください。'
+    : '';
+});
+
+code.addEventListener('keydown', function(ev){
+  if (ev.key === 'Tab') {
+    ev.preventDefault();
+    var s = code.selectionStart, e = code.selectionEnd;
+    code.value = code.value.slice(0, s) + '  ' + code.value.slice(e);
+    code.setSelectionRange(s + 2, s + 2);
+  }
+});
+
+document.getElementById('clear').addEventListener('click', function(){
+  code.value = '';
+  warn.textContent = '';
+  result.classList.remove('on');
+  grow();
+  code.focus();
+});
+
+hintBtn.addEventListener('click', function(){
+  var q = Q[cur];
+  if (hintsUsed[cur] >= q.hints.length) return;
+  hintsBox.children[hintsUsed[cur]].classList.add('on');
+  hintsUsed[cur] += 1;
+  if (hintsUsed[cur] >= q.hints.length) {
+    hintBtn.disabled = true;
+    hintBtn.textContent = 'ヒントは以上';
+  }
+});
+
+nextBtn.addEventListener('click', function(){
+  save();
+  if (cur < Q.length - 1) load(cur + 1);
+});
+
+document.getElementById('run').addEventListener('click', function(){
+  if (!code.value.trim()) { warn.textContent = 'みどりのわくが空のままです。'; return; }
+  var q = Q[cur];
+  counts[cur] += 1;
+  view.srcdoc = HEAD + withImages(q.before + '\n' + code.value + '\n' + q.after) + '</body></html>';
+
+  var doc  = parser.parseFromString('<body>' + code.value + '</body>', 'text/html');
+  var list = runChecks(q.checks, doc.body);
+
+  checksEl.innerHTML = '';
+  var allOk = true;
+  list.forEach(function(c){
+    if (!c.ok) allOk = false;
+    var li = document.createElement('li');
+    li.className = c.ok ? 'ok' : 'ng';
+    li.textContent = c.msg;
+    if (!c.ok && c.why) {
+      var sp = document.createElement('span');
+      sp.className = 'why';
+      sp.innerHTML = c.why;
+      li.appendChild(sp);
+    }
+    checksEl.appendChild(li);
+  });
+
+  var stamp  = document.getElementById('stamp');
+  var vTitle = document.getElementById('vTitle');
+  var vText  = document.getElementById('vText');
+  var starsEl= document.getElementById('stars');
+
+  stamp.className = 'stamp ' + (allOk ? 'ok' : 'ng');
+  void stamp.offsetWidth;
+  stamp.textContent = allOk ? '○' : '△';
+
+  if (allOk) {
+    var n = (counts[cur] === 1 && hintsUsed[cur] === 0) ? 3
+          : (counts[cur] <= 3 && hintsUsed[cur] <= 1) ? 2 : 1;
+    if (!cleared[cur] || n > stars[cur]) stars[cur] = n;
+    cleared[cur] = true;
+    vTitle.textContent = 'せいかい！';
+    vText.textContent  = '見本と同じ画面になりました。' + counts[cur] + '回目でクリアです。';
+    starsEl.textContent = '★★★☆☆☆'.slice(3 - n, 6 - n);
+    nextBtn.style.display = (cur === Q.length - 1) ? 'none' : '';
+  } else {
+    vTitle.textContent = 'もうすこし';
+    vText.textContent  = '下の×のところを直して、もういちど「できた！」を押してください。';
+    starsEl.textContent = '';
+  }
+
+  tries.textContent = (cleared[cur] ? 'クリア済み　' : '') + '出した回数：' + counts[cur] + '回';
+  result.classList.add('on');
+  drawDots();
+  result.scrollIntoView({ behavior:'smooth', block:'start' });
+});
+
+(function(){
+  var t = document.getElementById('refToggle');
+  var l = document.getElementById('taglist');
+  t.addEventListener('click', function(){
+    var off = l.classList.toggle('off');
+    t.textContent = off ? 'ひらく' : 'とじる';
+  });
+})();
+
+load(0);
+})();
+</script>
+
+</body>
+</html>
